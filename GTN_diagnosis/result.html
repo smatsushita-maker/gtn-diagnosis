@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>診断結果 | 外国人雇用 成功確率診断 | GTN</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* 結果ページ補足スタイル */
+    .result-main { opacity: 0; transition: opacity 0.5s ease; }
+    .result-main.visible { opacity: 1; }
+
+    /* スコア詳細 */
+    .score-detail-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .score-detail-text {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      background: var(--bg);
+      padding: 4px 12px;
+      border-radius: 50px;
+      border: 1px solid var(--border-light);
+    }
+
+    /* 印刷ボタン */
+    .print-btn-wrap {
+      text-align: right;
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 8px 20px 0;
+    }
+    .btn-print {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      cursor: pointer;
+      font-family: var(--font);
+      transition: background 0.15s;
+    }
+    .btn-print:hover { background: var(--bg); }
+
+    /* フォームセクション */
+    .form-section {
+      background: var(--bg);
+      border-top: 1px solid var(--border-light);
+    }
+
+    /* リスクなし時の強調 */
+    .all-green-msg {
+      background: var(--primary-light);
+      border: 1px solid #a7e3bf;
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
+      color: var(--primary-dark);
+      font-size: 0.92rem;
+      line-height: 1.75;
+    }
+  </style>
+</head>
+<body data-page="result">
+
+  <!-- ローディング -->
+  <div class="loading-overlay" id="loading-overlay" role="status" aria-live="polite">
+    <div class="loading-logo">GTN</div>
+    <div class="loading-spinner" aria-hidden="true"></div>
+    <p class="loading-text">診断結果を集計しています...</p>
+  </div>
+
+  <!-- ヘッダー -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="diagnosis.html" class="logo" aria-label="GTN Global Talent Navi">
+        <span class="logo-mark">GTN</span>
+        <span class="logo-name">Global Talent Navi</span>
+      </a>
+      <span class="header-badge">診断結果</span>
+    </div>
+  </header>
+
+  <!-- 印刷ボタン（ヘッダー直下） -->
+  <div class="print-btn-wrap no-print">
+    <button class="btn-print" id="btn-print" aria-label="この結果を印刷する">
+      🖨 印刷・保存
+    </button>
+  </div>
+
+  <!-- メインコンテンツ -->
+  <div class="result-main" id="result-main">
+
+    <!-- ① 成功確率 & 評価 -->
+    <section class="result-hero" aria-labelledby="result-heading">
+      <div class="result-hero-inner">
+        <p class="result-label">診断結果</p>
+
+        <div class="rate-display">
+          <div class="rate-num-wrap">
+            <span class="rate-num" id="rate-num" aria-label="成功確率">0</span>
+            <span class="rate-unit">%</span>
+          </div>
+          <p class="rate-caption">外国人雇用 成功確率（簡易診断）</p>
+        </div>
+
+        <div class="score-detail-row">
+          <span class="score-detail-text" id="score-detail">スコア：― / 20点</span>
+        </div>
+
+        <!-- ② 総合評価バッジ -->
+        <div style="margin-top: 20px; margin-bottom: 8px;">
+          <span class="rating-badge" id="rating-badge">総合評価：―</span>
+        </div>
+
+        <!-- ③ 総評コメント -->
+        <div class="result-comment fade-up fade-up-d1" id="result-comment" role="note">
+          診断結果を読み込んでいます...
+        </div>
+      </div>
+    </section>
+
+    <!-- ④ 主要リスク -->
+    <section class="risk-section" aria-labelledby="risk-heading">
+      <div class="risk-inner">
+        <div class="risk-section-head">
+          <h2 class="risk-section-title" id="risk-heading">
+            <span aria-hidden="true">⚠</span> 検出された主要リスク
+          </h2>
+          <p class="risk-section-sub">
+            C評価・B評価の回答をもとに、特に注意が必要な項目を抽出しています。
+          </p>
+        </div>
+
+        <!-- リスクリスト（JavaScriptで描画） -->
+        <div id="risk-list" role="list" aria-label="主要リスク一覧">
+          <p style="color:var(--text-sub);font-size:0.9rem;">分析中...</p>
+        </div>
+
+        <!-- ⑤ 離職コスト注意喚起 -->
+        <div class="cost-warning" role="note" aria-label="離職コストの注意喚起">
+          <span class="cost-warning-icon" aria-hidden="true">💰</span>
+          <div class="cost-warning-body">
+            <p>
+              外国人材の早期離職は、採用費・教育負担・現場の工数増加・再採用コストを含めて
+              <strong>1名あたり数十万円〜数百万円規模の損失につながるケース</strong>もあります。
+              リスクを把握した上で、採用前の設計を丁寧に進めることが重要です。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ⑥ 無料相談CTA -->
+    <section class="result-cta" aria-labelledby="cta-heading">
+      <div class="result-cta-inner">
+        <h2 class="result-cta-title" id="cta-heading">
+          診断結果をもとに、<br>無料で整理できます
+        </h2>
+        <p class="result-cta-desc">
+          「自社の本当のリスクは何か」「何から先に整えるべきか」「採用前に決めるべきことは何か」を、
+          30分の無料相談で専門家と整理できます。
+        </p>
+
+        <div class="result-cta-points">
+          <div class="result-cta-point">何が本当のリスクなのかを明確にする</div>
+          <div class="result-cta-point">何から先に整えるべきかを整理する</div>
+          <div class="result-cta-point">採用前に決めるべきことをリストアップする</div>
+          <div class="result-cta-point">外国人雇用の設計をゼロから相談できる</div>
+        </div>
+
+        <!-- id="cta-consult" でGA4クリック計測が可能 -->
+        <a href="#lead-form-section"
+           class="btn btn-cta btn-lg"
+           id="cta-consult"
+           onclick="trackEvent && trackEvent('cta_click', {cta_id:'result_cta', location:'result_cta_section'})">
+          無料相談を申し込む →
+        </a>
+
+        <p class="result-cta-note">無料・秘密厳守・勧誘はありません</p>
+
+        <div style="margin-top: 20px;">
+          <button class="result-retry-link js-retry" aria-label="診断をやり直す">
+            もう一度診断する
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ⑦ リード取得フォーム -->
+    <section class="form-section" id="lead-form-section" aria-labelledby="form-heading">
+      <div class="form-inner">
+        <div class="form-card">
+          <div class="form-head">
+            <h2 class="form-head-title" id="form-heading">
+              無料相談の申し込みフォーム
+            </h2>
+            <p class="form-head-sub">
+              以下のフォームにご記入いただくと、GTNの担当者よりご連絡いたします。
+              診断結果とあわせて、受入体制・リスク対策についてご相談いただけます。
+            </p>
+          </div>
+
+          <!-- フォーム本体 -->
+          <div id="form-body">
+            <form id="lead-form" novalidate>
+
+              <div class="form-row">
+                <div class="form-field">
+                  <label class="form-label" for="f-company">
+                    会社名<span class="form-required">必須</span>
+                  </label>
+                  <input class="form-input" type="text" id="f-company" name="company"
+                         placeholder="株式会社〇〇" autocomplete="organization" data-required>
+                  <p class="form-error-msg" id="f-company-err" role="alert"></p>
+                </div>
+                <div class="form-field">
+                  <label class="form-label" for="f-name">
+                    お名前<span class="form-required">必須</span>
+                  </label>
+                  <input class="form-input" type="text" id="f-name" name="name"
+                         placeholder="山田 太郎" autocomplete="name" data-required>
+                  <p class="form-error-msg" id="f-name-err" role="alert"></p>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-field">
+                  <label class="form-label" for="f-email">
+                    メールアドレス<span class="form-required">必須</span>
+                  </label>
+                  <input class="form-input" type="email" id="f-email" name="email"
+                         placeholder="example@company.co.jp" autocomplete="email" data-required>
+                  <p class="form-error-msg" id="f-email-err" role="alert"></p>
+                </div>
+                <div class="form-field">
+                  <label class="form-label" for="f-phone">
+                    電話番号<span class="form-optional">任意</span>
+                  </label>
+                  <input class="form-input" type="tel" id="f-phone" name="phone"
+                         placeholder="03-0000-0000" autocomplete="tel">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-field">
+                  <label class="form-label" for="f-industry">
+                    業種<span class="form-required">必須</span>
+                  </label>
+                  <select class="form-select" id="f-industry" name="industry" data-required>
+                    <option value="">選択してください</option>
+                    <option value="製造業">製造業</option>
+                    <option value="建設業">建設業</option>
+                    <option value="農業・水産業">農業・水産業</option>
+                    <option value="介護・福祉">介護・福祉</option>
+                    <option value="外食・飲食">外食・飲食</option>
+                    <option value="サービス業">サービス業</option>
+                    <option value="小売・流通">小売・流通</option>
+                    <option value="IT・情報通信">IT・情報通信</option>
+                    <option value="その他">その他</option>
+                  </select>
+                  <p class="form-error-msg" id="f-industry-err" role="alert"></p>
+                </div>
+                <div class="form-field">
+                  <label class="form-label" for="f-employees">
+                    従業員数<span class="form-required">必須</span>
+                  </label>
+                  <select class="form-select" id="f-employees" name="employees" data-required>
+                    <option value="">選択してください</option>
+                    <option value="1〜9名">1〜9名</option>
+                    <option value="10〜29名">10〜29名</option>
+                    <option value="30〜99名">30〜99名</option>
+                    <option value="100〜299名">100〜299名</option>
+                    <option value="300名以上">300名以上</option>
+                  </select>
+                  <p class="form-error-msg" id="f-employees-err" role="alert"></p>
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label class="form-label" for="f-foreign-status">
+                  現在の外国人雇用状況<span class="form-required">必須</span>
+                </label>
+                <select class="form-select" id="f-foreign-status" name="foreignStatus" data-required>
+                  <option value="">選択してください</option>
+                  <option value="まだ雇用していない">まだ雇用していない</option>
+                  <option value="現在雇用している">現在雇用している</option>
+                  <option value="過去に雇用していた">過去に雇用していた</option>
+                  <option value="検討中">検討中</option>
+                </select>
+                <p class="form-error-msg" id="f-foreign-status-err" role="alert"></p>
+              </div>
+
+              <div class="form-submit-wrap">
+                <!-- id="btn-form-submit" でGA4クリック計測が可能 -->
+                <button type="submit" class="btn btn-cta btn-lg btn-block" id="btn-form-submit"
+                        onclick="trackEvent && trackEvent('cta_click', {cta_id:'form_submit', location:'lead_form'})">
+                  無料相談を申し込む →
+                </button>
+                <p class="form-privacy-note">
+                  ご入力いただいた情報は、無料相談のご案内のみに使用します。
+                  第三者への提供はいたしません。
+                  <a href="#" style="color:var(--primary);">プライバシーポリシー</a>
+                </p>
+              </div>
+
+            </form>
+          </div><!-- /#form-body -->
+
+          <!-- サンクスメッセージ（送信後表示） -->
+          <div class="thanks-msg" id="thanks-msg" role="status" aria-live="polite">
+            <div class="thanks-icon" aria-hidden="true">✅</div>
+            <h3 class="thanks-title">お申し込みありがとうございます</h3>
+            <p class="thanks-desc">
+              担当者より、ご登録いただいたメールアドレスにご連絡いたします。<br>
+              通常1〜2営業日以内にご連絡しますので、しばらくお待ちください。
+            </p>
+          </div>
+
+        </div><!-- /.form-card -->
+      </div>
+    </section>
+
+  </div><!-- /#result-main -->
+
+  <!-- フッター -->
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="#">プライバシーポリシー</a>
+      <a href="#">利用規約</a>
+      <a href="#">運営会社</a>
+      <a href="#">お問い合わせ</a>
+    </div>
+    <p>© 2025 Global Talent Navi (GTN). All rights reserved.</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    // 結果ページ表示（ローディング終了後）
+    const resultMain = document.getElementById('result-main');
+    document.getElementById('loading-overlay').addEventListener('transitionend', () => {
+      resultMain.classList.add('visible');
+    });
+
+    // 相談ボタンのhref設定（app.jsの CONSULT_URL を参照）
+    // ※ app.js の CONSULT_URL 定数はここで参照できないため、result.html内のリンクを直接設定
+    // ↓ここのURLを変更してください（app.js の CONSULT_URL と合わせて設定）
+    // document.querySelectorAll('.js-consult-link').forEach(a => a.href = 'YOUR_CONSULT_URL');
+  </script>
+</body>
+</html>
