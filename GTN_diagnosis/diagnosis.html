@@ -381,22 +381,34 @@
 
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-    // URLパラメータ保持（note/X/LinkedIn等からの流入）
-    const src = new URLSearchParams(window.location.search).get('source');
-    if (src) {
-      // 診断ページへのリンクにsourceを引き継ぐ
-      document.querySelectorAll('a[href="check.html"]').forEach(a => {
-        a.href = `check.html?source=${encodeURIComponent(src)}`;
-      });
-    }
+    // ① トラッキングパラメータ（source / ref）を取得して LocalStorage に保存
+    //    saveTrackingParams() は app.js で定義
+    //    URL指定が最優先。未指定時は既存値を維持（初回は source='direct'）
+    if (typeof saveTrackingParams !== 'undefined') saveTrackingParams();
 
-    // BNI流入時の補助メッセージ表示（source=bni）
-    // SOURCE_MESSAGES は app.js で定義
+    // ② 診断ページへのリンクに source / ref を引き継ぐ（URLパラメータ継続）
+    //    diagnosis.html → check.html の遷移でパラメータが消えないようにする
+    const _lpParams = new URLSearchParams(window.location.search);
+    const _lpSrc    = (_lpParams.get('source') || '').toLowerCase().trim();
+    const _lpRef    = (_lpParams.get('ref')    || '').trim();
+
+    (function updateCheckLinks() {
+      if (!_lpSrc && !_lpRef) return;
+      document.querySelectorAll('a[href="check.html"]').forEach(function (a) {
+        const qp = new URLSearchParams();
+        if (_lpSrc) qp.set('source', _lpSrc);
+        if (_lpRef) qp.set('ref',    _lpRef);
+        a.href = 'check.html?' + qp.toString();
+      });
+    })();
+
+    // ③ BNI流入時の補助メッセージ表示（source=bni）
+    //    SOURCE_MESSAGES / getSourceMessage() は app.js で定義
     (function showBniDiagnosisNote() {
-      if (!src) return;
-      const msg = (typeof getSourceMessage !== 'undefined') ? getSourceMessage(src) : null;
+      if (!_lpSrc) return;
+      const msg = (typeof getSourceMessage !== 'undefined') ? getSourceMessage(_lpSrc) : null;
       if (!msg || !msg.diagnosisNote) return;
-      const wrap = document.getElementById('bni-diagnosis-note');
+      const wrap  = document.getElementById('bni-diagnosis-note');
       const inner = document.getElementById('bni-diagnosis-note-inner');
       if (wrap && inner) {
         inner.innerHTML = msg.diagnosisNote;
@@ -404,9 +416,9 @@
       }
     })();
 
-    // GA4（診断LP到達）
+    // ④ GA4（診断LP到達）
     if (typeof trackEvent !== 'undefined') {
-      trackEvent('page_view_lp', { source: src || 'direct' });
+      trackEvent('page_view_lp', { source: _lpSrc || 'direct', ref: _lpRef || '' });
     }
   </script>
 </body>

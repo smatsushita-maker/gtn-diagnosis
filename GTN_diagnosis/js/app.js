@@ -185,7 +185,14 @@ const COMMENTS = {
    ============================================= */
 
 const STORAGE_ANSWERS_KEY = 'gtn_risk_answers';    // { "1": "A", "2": "C", ... }
-const STORAGE_SOURCE_KEY  = 'gtn_risk_source';
+const STORAGE_SOURCE_KEY  = 'gtn_risk_source';     // 流入元（bni / linkedin / x / note / facebook / direct）
+const STORAGE_REF_KEY     = 'gtn_risk_ref';        // 紹介者・紹介コード（任意）
+
+/** トラッキングパラメータのストレージキー一覧（後から参照用） */
+const TRACKING_KEYS = {
+  source: STORAGE_SOURCE_KEY,
+  ref:    STORAGE_REF_KEY,
+};
 
 function saveAnswers(answers) {
   localStorage.setItem(STORAGE_ANSWERS_KEY, JSON.stringify(answers));
@@ -217,6 +224,61 @@ function saveSource(src) {
 
 function loadSource() {
   return localStorage.getItem(STORAGE_SOURCE_KEY) || 'direct';
+}
+
+function saveRef(ref) {
+  localStorage.setItem(STORAGE_REF_KEY, ref || '');
+}
+
+function loadRef() {
+  return localStorage.getItem(STORAGE_REF_KEY) || '';
+}
+
+/**
+ * URLとLocalStorageからトラッキングパラメータを取得して返す
+ * URLパラメータが最優先。なければLocalStorage値を使用。
+ * @returns {{ source: string, ref: string }}
+ */
+function getTrackingParams() {
+  const params = new URLSearchParams(window.location.search);
+  const srcUrl = (params.get('source') || '').toLowerCase().trim();
+  const refUrl = params.get('ref');
+
+  const source = srcUrl || loadSource() || 'direct';
+  const ref    = refUrl !== null
+    ? decodeURIComponent(refUrl).trim()
+    : loadRef();
+
+  return { source, ref };
+}
+
+/**
+ * URLからトラッキングパラメータを取得してLocalStorageに保存する
+ * 各ページ初期化時に呼び出す（CheckPage.init / ResultPage.init / diagnosis.html）
+ * ・source: URLにあれば上書き（小文字・トリム）、なければ既存値を維持
+ * ・ref   : URLにあれば上書き（URLデコード・トリム）、なければ既存値を維持
+ *
+ * 標準 source 値: bni / linkedin / x / note / facebook / direct / other
+ */
+function saveTrackingParams() {
+  const params    = new URLSearchParams(window.location.search);
+  const srcFromUrl = params.get('source');
+  const refFromUrl = params.get('ref');
+
+  // source: URL指定あり → 正規化して上書き。未指定かつ未保存 → 'direct' を初期値として設定
+  if (srcFromUrl !== null) {
+    saveSource(srcFromUrl.toLowerCase().trim() || 'direct');
+  } else if (!localStorage.getItem(STORAGE_SOURCE_KEY)) {
+    saveSource('direct');
+  }
+
+  // ref: URL指定あり → URLデコードして上書き。未指定なら既存値を維持
+  if (refFromUrl !== null) {
+    saveRef(decodeURIComponent(refFromUrl).trim());
+  }
+
+  // デバッグログ（開発時の動作確認用）
+  console.log('[GTN] tracking :', { source: loadSource(), ref: loadRef() });
 }
 
 /* =============================================
@@ -284,9 +346,8 @@ const CheckPage = {
   currentIdx: 0,
 
   init() {
-    // UTMソースを保存
-    const src = new URLSearchParams(window.location.search).get('source') || 'direct';
-    saveSource(src);
+    // トラッキングパラメータ（source / ref）を保存（v2.3）
+    saveTrackingParams();
 
     this.answers    = loadAnswers();
     this.currentIdx = loadCurrentIndex();
@@ -470,10 +531,8 @@ const ResultPage = {
     const printBtn = document.getElementById('btn-print');
     if (printBtn) printBtn.addEventListener('click', () => window.print());
 
-    // source取得
-    const source = new URLSearchParams(window.location.search).get('source')
-                   || loadSource() || 'direct';
-    saveSource(source);
+    // トラッキングパラメータ（source / ref）を保存（v2.3）
+    saveTrackingParams();
   },
 
   calcScore() {
@@ -673,6 +732,7 @@ const ResultPage = {
       rating:        this.rating,
       risks:         this.risks.map(r => r.label),
       source:        loadSource(),
+      ref:           loadRef(),           // 紹介者・紹介コード（v2.3）
       // フォーム情報
       company:       formData.company,
       name:          formData.name,
