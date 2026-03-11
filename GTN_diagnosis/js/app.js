@@ -691,6 +691,316 @@ const ResultPage = {
 };
 
 /* =============================================
+   離職コストモデル（参考値 v1）
+   ─────────────────────────────────────────────
+   ・baseMin / baseMax : 参考レンジの基準値（円）
+   ・将来的に業種係数・難易度係数・採用タイプ係数で調整できる構造
+   ・今バージョンでは評価（A/B/C）のみ係数を適用
+   ============================================= */
+
+const ATTRITION_COST_MODEL = {
+  /** 参考コスト基準（円） */
+  baseMin: 1200000,  // 120万円
+  baseMax: 4200000,  // 420万円
+
+  /**
+   * 業種係数（将来拡張用）
+   * 現バージョンでは参照しているが、calcAttritionCost 内で係数適用を切り替え可能
+   */
+  industryWeights: {
+    '製造業':      1.1,
+    '建設業':      1.1,
+    '農業・水産業': 1.0,
+    '介護・福祉':   1.1,
+    '外食・飲食':   1.0,
+    'サービス業':   0.95,
+    '小売・流通':   0.95,
+    'IT・情報通信': 1.0,
+    'その他':      1.0,
+    '_default':    1.0,
+  },
+
+  /**
+   * 受入難易度係数（評価ベース）
+   * C評価 = 整備不足 = 離職リスク高め → コスト係数大
+   */
+  difficultyWeights: {
+    A: 0.9,   // 受入体制良好 → コスト低め
+    B: 1.0,   // 標準
+    C: 1.1,   // 受入体制未整備 → コスト高め
+  },
+
+  /**
+   * 採用タイプ係数（将来拡張用）
+   * 今バージョンでは使用しないが、将来「採用タイプ選択」追加時に活用
+   */
+  hiringTypeWeights: {
+    professional: 0.9,   // 専門職採用型
+    frontline:    1.0,   // 現場戦力採用型
+    development:  1.1,   // 育成前提採用型
+    undecided:    1.0,   // 未定
+  },
+};
+
+/**
+ * 参考離職コストを計算して返す
+ * @param {string} industry - 業種文字列（未入力 or 不明は '_default'）
+ * @param {string} rating   - 'A' | 'B' | 'C'
+ * @returns {{ min: number, max: number }} 参考コスト（円）
+ */
+function calcAttritionCost(industry, rating) {
+  const model = ATTRITION_COST_MODEL;
+
+  // 難易度係数（評価から算出）
+  const diffW = model.difficultyWeights[rating] ?? 1.0;
+
+  // 業種係数（将来活用。現バージョンでは乗算しない）
+  // const indW = model.industryWeights[industry] ?? model.industryWeights['_default'];
+
+  const combined = diffW; // 将来: combined = diffW * indW * hiringTypeW
+
+  return {
+    min: Math.round(model.baseMin * combined / 10000) * 10000,  // 1万円単位で丸め
+    max: Math.round(model.baseMax * combined / 10000) * 10000,
+  };
+}
+
+/** 万円表示に変換 */
+function fmtManyen(yen) {
+  return (yen / 10000).toFixed(0) + '万円';
+}
+
+/* =============================================
+   ソース別メッセージ（BNI対応）
+   ─────────────────────────────────────────────
+   source パラメータに応じた補助文言を一元管理。
+   将来的に note / linkedin / x 向けも追加可能。
+   ============================================= */
+
+const SOURCE_MESSAGES = {
+  bni: {
+    /** 診断LP（diagnosis.html）に表示する補助文言 */
+    diagnosisNote: 'ご紹介でこの診断をご利用いただいた方へ<br>診断後の無料相談では、制度論だけでなく、現場運用や定着まで含めて整理します。',
+    /** 結果ページ（result.html）の CTA 付近に表示する補助文言 */
+    ctaNote: '紹介を受けてご利用の方は、診断結果の見方や次の打ち手について無料でご相談いただけます。',
+  },
+  // 将来追加例:
+  // note: { diagnosisNote: '...', ctaNote: '...' },
+};
+
+/**
+ * source に対応するメッセージオブジェクトを返す
+ * @param {string} source - loadSource() の戻り値
+ * @returns {object|null}
+ */
+function getSourceMessage(source) {
+  return SOURCE_MESSAGES[source] || null;
+}
+
+/**
+ * 紹介用コピーテキスト（result.html の「ご紹介にもご活用いただけます」ブロック用）
+ * この文面をそのまま転送・コピペできるように設計
+ */
+const REFERRAL_COPY_TEXT =
+  '外国人採用を検討している企業様向けの簡易診断です。\n' +
+  '採用の進め方、受入体制、定着リスクを整理できます。\n' +
+  '▶ https://gtn-diagnosis.vercel.app/GTN_diagnosis/diagnosis.html';
+
+/* =============================================
+   評価別コンテンツ（v2.1 追加）
+   ─────────────────────────────────────────────
+   改善余地メッセージ・経営コメント・次ステップを定数管理。
+   文言のみ後から調整できる構造にする。
+   ============================================= */
+
+/**
+ * 改善余地メッセージ（result-hero の成功確率表示の下に補足表示）
+ * 断定的に新数値を出さず、「改善可能性」を伝えることが目的
+ */
+const IMPROVEMENT_NOTES = {
+  A: '基礎的な受入体制は比較的整っています。一方で、評価制度・現場運用・定着支援まで含めた設計によって、長期的な定着率や戦力化に大きな差が生まれます。',
+  B: '一定の土台はありますが、採用活動を始める前に、受入体制と役割設計を整理することで、成功確率を大きく高めることができます。',
+  C: '現状のまま外国人雇用を進めると、採用はできても定着でつまずくリスクがあります。ただし、採用目的・受入責任者・定着設計を整理することで、状況を改善していくことは可能です。',
+};
+
+/**
+ * GTN 経営コメント（評価別）
+ * 「採用問題ではなく経営設計の問題」と認識してもらうための視点提供
+ */
+const MANAGEMENT_COMMENTS = {
+  A: '現状は比較的良い土台が整っています。良い状態のうちに設計精度を高めておくことが重要です。外国人雇用の成果は採用だけでは決まりません。定着・戦力化まで含めた評価制度・現場運用の整備が、長期的な安定運用につながります。',
+  B: '外国人雇用は、単なる採用活動ではなく、採用目的・受入責任者・定着設計まで含めた「経営設計」です。採用を始める前に体制を整えることが、成功確率を最も高める方法です。今のうちに整理することが、後々の離職や現場負荷を大きく減らします。',
+  C: '現状のまま外国人雇用を進めると、採用はできても定着や戦力化でつまずく可能性があります。採用目的・受入責任者・現場運用の整理が不十分なまま採用を進めることで、早期離職や現場負荷につながります。ただし、採用前に体制を整理することで改善は可能です。',
+};
+
+/**
+ * 次に整理すべきポイント
+ * 評価別の見出し + 共通3項目（シンプルに保守しやすい構造）
+ */
+const NEXT_STEPS = {
+  heading: {
+    A: '安定運用に向けて確認・精度向上すべきポイント',
+    B: '採用を進める前に整理すべき3つのポイント',
+    C: 'まず整えるべき3つのポイント',
+  },
+  items: [
+    {
+      title: '採用目的の明確化',
+      desc:  '人員補充なのか、戦力化なのかを経営として定義する。目的が曖昧なまま進めると、定着・評価設計全体がブレます。',
+    },
+    {
+      title: '受入責任者の決定と役割分担',
+      desc:  '誰が外国人雇用の責任を持つかを明確にする。責任の所在が曖昧な組織では、問題が発生しても誰も動けない状態になります。',
+    },
+    {
+      title: '定着設計の整備',
+      desc:  '教育・生活支援・評価・現場フォローの仕組みを整理する。採用後の設計こそが、成功確率を最も左右する要素です。',
+    },
+  ],
+};
+
+/**
+ * 評価別CTAメッセージ（v2.2 追加）
+ * ─────────────────────────────────────────────
+ * CTA①（軽め／リスク確認後の入口）と
+ * CTA②（本命／ページ下部）のテキストを評価別に一元管理。
+ * lightCta : CTA①の誘導文（→ を末尾に付加して表示）
+ * mainTitle: CTA②の見出し
+ * mainDesc : CTA②の説明文
+ */
+const CTA_MESSAGES = {
+  A: {
+    lightCta:  'この結果を踏まえて、より安定した受入・定着設計を整理したい場合は、無料相談をご利用いただけます',
+    mainTitle: '診断結果をもとに、無料で相談できます',
+    mainDesc:  '良い土台がある企業ほど、設計精度によって定着率や戦力化に差が生まれます。採用設計・定着設計・評価制度まで整理したい場合は、無料相談をご利用ください。',
+  },
+  B: {
+    lightCta:  'この結果を踏まえて、採用を進める前に体制を整理したい場合は、無料相談をご利用いただけます',
+    mainTitle: '採用を進める前に、無料で整理できます',
+    mainDesc:  '採用を進める前に、受入体制・役割設計・定着支援を整理することで、成功確率を大きく高めることができます。貴社の状況に合わせた進め方を整理したい場合は、無料相談をご利用ください。',
+  },
+  C: {
+    lightCta:  'この結果を踏まえて、現状課題と優先順位を整理したい場合は、無料相談をご利用いただけます',
+    mainTitle: '現状を整理して、改善の第一歩を',
+    mainDesc:  '現状のまま採用を進めると、早期離職や現場負荷につながる可能性があります。まず何を整えるべきかを整理したい場合は、診断結果をもとに無料でご相談いただけます。',
+  },
+};
+
+/* ─── ResultPage に離職コスト・BNIメッセージ表示メソッドを追加 ─── */
+
+/**
+ * 参考離職コストを結果ページに表示する
+ * ID: #attrition-cost-display
+ */
+ResultPage.renderAttritionCost = function () {
+  const el = document.getElementById('attrition-cost-display');
+  if (!el) return;
+  const cost = calcAttritionCost('_default', this.rating);
+  el.textContent = fmtManyen(cost.min) + '〜' + fmtManyen(cost.max);
+};
+
+/**
+ * source=bni 時の補助メッセージを表示する
+ * ・#bni-cta-note-wrap : CTAセクションの補助文言
+ */
+ResultPage.renderSourceMessage = function () {
+  const source = loadSource();
+  const msg = getSourceMessage(source);
+
+  // CTA 付近の BNI 補助文言
+  const ctaWrap = document.getElementById('bni-cta-note-wrap');
+  if (ctaWrap && msg && msg.ctaNote) {
+    const ctaEl = document.getElementById('bni-cta-note');
+    if (ctaEl) ctaEl.textContent = msg.ctaNote;
+    ctaWrap.classList.remove('hidden');
+  }
+};
+
+/**
+ * 改善余地メモを result-hero 内に表示（v2.1）
+ * ID: #improvement-note
+ */
+ResultPage.renderImprovementNote = function () {
+  const el = document.getElementById('improvement-note');
+  if (!el) return;
+  const note = IMPROVEMENT_NOTES[this.rating];
+  if (!note) return;
+  el.textContent = note;
+  el.classList.remove('hidden');
+};
+
+/**
+ * GTN 経営コメントを表示（v2.1）
+ * ID: #management-comment
+ */
+ResultPage.renderManagementComment = function () {
+  const el = document.getElementById('management-comment');
+  if (!el) return;
+  el.textContent = MANAGEMENT_COMMENTS[this.rating] || MANAGEMENT_COMMENTS['B'];
+};
+
+/**
+ * 次に整理すべきポイントを描画（v2.1）
+ * ID: #next-steps-heading, #next-steps-list
+ */
+ResultPage.renderNextSteps = function () {
+  const headEl = document.getElementById('next-steps-heading');
+  const listEl = document.getElementById('next-steps-list');
+  if (!listEl) return;
+
+  // 評価別の見出しを設定
+  if (headEl) {
+    headEl.textContent = NEXT_STEPS.heading[this.rating] || '次に整理すべきポイント';
+  }
+
+  // カード形式でリスト描画
+  listEl.innerHTML = NEXT_STEPS.items.map((item, idx) => `
+    <div class="next-step-item" role="listitem">
+      <div class="next-step-num" aria-hidden="true">${idx + 1}</div>
+      <div class="next-step-body">
+        <div class="next-step-title">${item.title}</div>
+        <div class="next-step-desc">${item.desc}</div>
+      </div>
+    </div>
+  `).join('');
+};
+
+/**
+ * 評価別CTAテキストをCTA①・CTA②に反映（v2.2）
+ * ・CTA① テキスト : #cta-light-text-content（span 内の textContent）
+ * ・CTA② 見出し  : #cta-main-title
+ * ・CTA② 説明文  : #cta-main-desc
+ */
+ResultPage.renderCtaMessages = function () {
+  const msgs = CTA_MESSAGES[this.rating];
+  if (!msgs) return;
+
+  // CTA①: 評価別テキスト（末尾に矢印を付加）
+  const lightTextEl = document.getElementById('cta-light-text-content');
+  if (lightTextEl) lightTextEl.textContent = msgs.lightCta + ' →';
+
+  // CTA②: 見出し
+  const mainTitleEl = document.getElementById('cta-main-title');
+  if (mainTitleEl) mainTitleEl.textContent = msgs.mainTitle;
+
+  // CTA②: 説明文
+  const mainDescEl = document.getElementById('cta-main-desc');
+  if (mainDescEl) mainDescEl.textContent = msgs.mainDesc;
+};
+
+/* ─── ResultPage.render() に全追加メソッドを注入（v2 / v2.1 / v2.2） ─── */
+const _origRender = ResultPage.render.bind(ResultPage);
+ResultPage.render = function () {
+  _origRender();
+  this.renderAttritionCost();      // 参考離職コスト（v2）
+  this.renderSourceMessage();      // BNI補助文言（v2）
+  this.renderImprovementNote();    // 改善余地メモ（v2.1）
+  this.renderManagementComment();  // GTN経営コメント（v2.1）
+  this.renderNextSteps();          // 次に整理すべきポイント（v2.1）
+  this.renderCtaMessages();        // 評価別CTAテキスト（v2.2）
+};
+
+/* =============================================
    初期化
    ============================================= */
 document.addEventListener('DOMContentLoaded', () => {

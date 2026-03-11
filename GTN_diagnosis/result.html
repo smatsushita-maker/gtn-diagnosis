@@ -125,6 +125,9 @@
         <div class="result-comment fade-up fade-up-d1" id="result-comment" role="note">
           診断結果を読み込んでいます...
         </div>
+
+        <!-- ④ 改善余地メモ（評価別・JavaScriptで描画。断定的な数値上乗せはしない） -->
+        <p class="improvement-note hidden" id="improvement-note" role="note"></p>
       </div>
     </section>
 
@@ -145,37 +148,91 @@
           <p style="color:var(--text-sub);font-size:0.9rem;">分析中...</p>
         </div>
 
-        <!-- ⑤ 離職コスト注意喚起 -->
-        <div class="cost-warning" role="note" aria-label="離職コストの注意喚起">
+        <!-- ⑤ 参考離職コスト（JavaScriptで計算・表示） -->
+        <div class="cost-warning" role="note" aria-label="参考離職コスト">
           <span class="cost-warning-icon" aria-hidden="true">💰</span>
           <div class="cost-warning-body">
-            <p>
-              外国人材の早期離職は、採用費・教育負担・現場の工数増加・再採用コストを含めて
-              <strong>1名あたり数十万円〜数百万円規模の損失につながるケース</strong>もあります。
-              リスクを把握した上で、採用前の設計を丁寧に進めることが重要です。
+
+            <!-- 参考コストレンジ表示 -->
+            <div class="cost-range-block">
+              <div class="cost-range-label">参考離職コスト</div>
+              <div class="cost-range-value" id="attrition-cost-display">算出中...</div>
+            </div>
+
+            <p class="cost-range-note">
+              この金額は、外国人材が早期離職した場合に一般的に発生しうる
+              採用費・教育費・再採用コストなどを参考レンジとして示したものです。<br>
+              ※実際の損失額は、職種・採用方法・教育投資・受入体制によって大きく変動します。
+              本診断では一般的な参考レンジを表示しています。
             </p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ⑥ 無料相談CTA -->
-    <section class="result-cta" aria-labelledby="cta-heading">
+    <!-- CTA①（軽め）—— リスク・コスト確認後の軽い相談入口 -->
+    <div class="cta-light-section no-print">
+      <div class="cta-light-inner">
+        <p class="cta-light-text">
+          <a href="#lead-form-section" class="cta-light-link" id="cta-light"
+             onclick="trackEvent && trackEvent('cta_click', {cta_id:'cta_light', location:'between_sections'})">
+            <span id="cta-light-text-content">この結果を踏まえて、具体的な進め方を整理したい場合は、無料相談をご利用いただけます →</span>
+          </a>
+        </p>
+      </div>
+    </div>
+
+    <!-- GTN 経営コメント（評価別・JavaScriptで描画） -->
+    <section class="mgmt-comment-section" aria-labelledby="mgmt-comment-heading">
+      <div class="mgmt-comment-inner">
+        <p class="mgmt-comment-eyebrow">GTN コメント</p>
+        <h2 class="mgmt-comment-title" id="mgmt-comment-heading">経営視点で見ると</h2>
+        <div class="mgmt-comment-body" id="management-comment" role="note">
+          読み込み中...
+        </div>
+      </div>
+    </section>
+
+    <!-- 次に整理すべきポイント（評価別見出し・JavaScriptで描画） -->
+    <section class="next-steps-section" aria-labelledby="next-steps-heading">
+      <div class="next-steps-inner">
+        <p class="next-steps-eyebrow">NEXT ACTION</p>
+        <h2 class="next-steps-title" id="next-steps-heading">次に整理すべきポイント</h2>
+        <div class="next-steps-list" id="next-steps-list" role="list" aria-label="次に整理すべきポイント一覧"></div>
+      </div>
+    </section>
+
+    <!-- 無料相談で整理できること（CTA②の直前に価値を明示） -->
+    <section class="consult-value-section no-print" aria-labelledby="consult-value-heading">
+      <div class="consult-value-inner">
+        <p class="consult-value-eyebrow">FREE CONSULTATION</p>
+        <h2 class="consult-value-title" id="consult-value-heading">無料相談で整理できること</h2>
+        <div class="consult-value-list">
+          <div class="consult-value-item">貴社に合う外国人採用の進め方</div>
+          <div class="consult-value-item">在留資格・採用手法の考え方</div>
+          <div class="consult-value-item">定着しやすい受入体制の整理</div>
+          <div class="consult-value-item">外国人雇用で失敗しやすいポイントの確認</div>
+        </div>
+        <p class="consult-value-note">
+          一般論ではなく、貴社の業種・採用方針・受入状況に合わせて整理できます。
+        </p>
+      </div>
+    </section>
+
+    <!-- ⑥ 無料相談CTA（CTA②・本命） -->
+    <section class="result-cta" aria-labelledby="cta-main-title">
       <div class="result-cta-inner">
-        <h2 class="result-cta-title" id="cta-heading">
-          診断結果をもとに、<br>無料で整理できます
+        <h2 class="result-cta-title" id="cta-main-title">
+          診断結果をもとに、無料で相談できます
         </h2>
-        <p class="result-cta-desc">
-          「自社の本当のリスクは何か」「何から先に整えるべきか」「採用前に決めるべきことは何か」を、
-          30分の無料相談で専門家と整理できます。
+        <p class="result-cta-desc" id="cta-main-desc">
+          採用設計・受入体制・定着設計の整理を、貴社の状況に合わせて一緒に進めます。
         </p>
 
-        <div class="result-cta-points">
-          <div class="result-cta-point">何が本当のリスクなのかを明確にする</div>
-          <div class="result-cta-point">何から先に整えるべきかを整理する</div>
-          <div class="result-cta-point">採用前に決めるべきことをリストアップする</div>
-          <div class="result-cta-point">外国人雇用の設計をゼロから相談できる</div>
-        </div>
+        <!-- BNI流入時のみ表示する補助文言（source=bni） -->
+        <p class="bni-cta-note-wrap hidden" id="bni-cta-note-wrap" role="note">
+          <span id="bni-cta-note"></span>
+        </p>
 
         <!-- id="cta-consult" でGA4クリック計測が可能 -->
         <a href="#lead-form-section"
@@ -308,7 +365,7 @@
                 <p class="form-privacy-note">
                   ご入力いただいた情報は、無料相談のご案内のみに使用します。
                   第三者への提供はいたしません。
-                  <a href="#" style="color:var(--primary);">プライバシーポリシー</a>
+                  <a href="https://globaltalent-navi.com/privacy" target="_blank" rel="noopener noreferrer" style="color:var(--primary);">プライバシーポリシー</a>
                 </p>
               </div>
 
@@ -331,13 +388,34 @@
 
   </div><!-- /#result-main -->
 
+  <!-- ご紹介にもご活用いただけます（BNIメンバーの転送・紹介用） -->
+  <section class="referral-section no-print" aria-labelledby="referral-heading">
+    <div class="referral-inner">
+      <p class="referral-eyebrow">REFERRAL</p>
+      <h3 id="referral-heading">ご紹介にもご活用いただけます</h3>
+      <p class="referral-desc">
+        外国人採用を検討している企業様向けの簡易診断です。<br>
+        採用の進め方、受入体制、定着リスクを整理できます。
+      </p>
+
+      <!-- コピー用テキスト + コピーボタン -->
+      <div class="referral-copy-wrap">
+        <div class="referral-copy-text" id="referral-copy-text"></div>
+        <button class="btn-copy" id="btn-copy" aria-label="紹介テキストをコピーする">
+          📋 コピーする
+        </button>
+      </div>
+      <p class="referral-copy-msg" id="referral-copy-msg" aria-live="polite"></p>
+    </div>
+  </section>
+
   <!-- フッター -->
   <footer class="site-footer">
     <div class="footer-links">
-      <a href="#">プライバシーポリシー</a>
-      <a href="#">利用規約</a>
-      <a href="#">運営会社</a>
-      <a href="#">お問い合わせ</a>
+      <a href="https://globaltalent-navi.com/privacy" target="_blank" rel="noopener noreferrer">プライバシーポリシー</a>
+      <a href="terms.html">利用規約</a>
+      <a href="https://www.flair-staff.co.jp/" target="_blank" rel="noopener noreferrer">運営会社</a>
+      <a href="https://globaltalent-navi.com/contact" target="_blank" rel="noopener noreferrer">お問い合わせ</a>
     </div>
     <p>© 2025 Global Talent Navi (GTN). All rights reserved.</p>
   </footer>
@@ -354,6 +432,58 @@
     // ※ app.js の CONSULT_URL 定数はここで参照できないため、result.html内のリンクを直接設定
     // ↓ここのURLを変更してください（app.js の CONSULT_URL と合わせて設定）
     // document.querySelectorAll('.js-consult-link').forEach(a => a.href = 'YOUR_CONSULT_URL');
+
+    // ── 紹介テキスト表示＋コピーボタン ──────────────────────
+    // REFERRAL_COPY_TEXT は app.js で定義
+    (function initReferralCopy() {
+      const textEl = document.getElementById('referral-copy-text');
+      const copyBtn = document.getElementById('btn-copy');
+      const msgEl   = document.getElementById('referral-copy-msg');
+
+      if (textEl && typeof REFERRAL_COPY_TEXT !== 'undefined') {
+        textEl.textContent = REFERRAL_COPY_TEXT;
+      }
+
+      if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+          const text = (typeof REFERRAL_COPY_TEXT !== 'undefined') ? REFERRAL_COPY_TEXT : '';
+          if (!text) return;
+
+          // Clipboard API 対応ブラウザ
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+              copyBtn.textContent = '✅ コピーしました';
+              copyBtn.classList.add('copied');
+              if (msgEl) msgEl.textContent = 'コピーしました。そのままご転送いただけます。';
+              setTimeout(() => {
+                copyBtn.textContent = '📋 コピーする';
+                copyBtn.classList.remove('copied');
+                if (msgEl) msgEl.textContent = '';
+              }, 2500);
+            }).catch(() => fallbackCopy(text));
+          } else {
+            fallbackCopy(text);
+          }
+        });
+      }
+
+      function fallbackCopy(text) {
+        // 古いブラウザ向けフォールバック
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          if (msgEl) msgEl.textContent = 'コピーしました。';
+        } catch {
+          if (msgEl) msgEl.textContent = '手動でテキストを選択してコピーしてください。';
+        }
+        document.body.removeChild(ta);
+      }
+    })();
   </script>
 </body>
 </html>

@@ -303,6 +303,43 @@
     </div>
   </section>
 
+  <!-- この診断は、こんな企業におすすめ（BNI紹介導線） -->
+  <section class="recommend-section section-white" aria-labelledby="recommend-title">
+    <div class="container">
+      <div class="section-head reveal">
+        <p class="section-eyebrow">FOR REFERRAL</p>
+        <h2 class="section-title" id="recommend-title">この診断は、こんな企業におすすめです</h2>
+        <p class="section-desc">
+          外国人採用に関わる経営者・責任者の方にご紹介いただけます。
+        </p>
+      </div>
+
+      <div class="recommend-list reveal">
+        <div class="recommend-item">
+          <span class="recommend-item-icon">▶</span>
+          外国人採用をこれから検討している企業
+        </div>
+        <div class="recommend-item">
+          <span class="recommend-item-icon">▶</span>
+          採用したが定着や戦力化に課題を感じている企業
+        </div>
+        <div class="recommend-item">
+          <span class="recommend-item-icon">▶</span>
+          在留資格や受入体制に不安がある企業
+        </div>
+        <div class="recommend-item">
+          <span class="recommend-item-icon">▶</span>
+          現場任せではなく、経営として外国人雇用を整理したい企業
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BNI流入時のみ表示する補助メッセージ（source=bni） -->
+  <div class="bni-diagnosis-note hidden" id="bni-diagnosis-note" role="note">
+    <div class="bni-diagnosis-note-inner" id="bni-diagnosis-note-inner"></div>
+  </div>
+
   <!-- CTAバナー（再掲） -->
   <section class="lp-cta" aria-labelledby="lp-cta-title">
     <h2 id="lp-cta-title">3分で診断を始める</h2>
@@ -322,10 +359,10 @@
   <!-- フッター -->
   <footer class="site-footer">
     <div class="footer-links">
-      <a href="#">プライバシーポリシー</a>
-      <a href="#">利用規約</a>
-      <a href="#">運営会社</a>
-      <a href="#">お問い合わせ</a>
+      <a href="https://globaltalent-navi.com/privacy" target="_blank" rel="noopener noreferrer">プライバシーポリシー</a>
+      <a href="terms.html">利用規約</a>
+      <a href="https://www.flair-staff.co.jp/" target="_blank" rel="noopener noreferrer">運営会社</a>
+      <a href="https://globaltalent-navi.com/contact" target="_blank" rel="noopener noreferrer">お問い合わせ</a>
     </div>
     <p>© 2025 Global Talent Navi (GTN). All rights reserved.</p>
   </footer>
@@ -352,6 +389,20 @@
         a.href = `check.html?source=${encodeURIComponent(src)}`;
       });
     }
+
+    // BNI流入時の補助メッセージ表示（source=bni）
+    // SOURCE_MESSAGES は app.js で定義
+    (function showBniDiagnosisNote() {
+      if (!src) return;
+      const msg = (typeof getSourceMessage !== 'undefined') ? getSourceMessage(src) : null;
+      if (!msg || !msg.diagnosisNote) return;
+      const wrap = document.getElementById('bni-diagnosis-note');
+      const inner = document.getElementById('bni-diagnosis-note-inner');
+      if (wrap && inner) {
+        inner.innerHTML = msg.diagnosisNote;
+        wrap.classList.remove('hidden');
+      }
+    })();
 
     // GA4（診断LP到達）
     if (typeof trackEvent !== 'undefined') {
