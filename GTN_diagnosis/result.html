@@ -3,18 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>診断結果 | 外国人雇用 成功確率診断 | GTN</title>
+  <title>診断結果 | 外国人材活用戦略診断 | GTN</title>
   <meta name="robots" content="noindex">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <style>
-    /* 結果ページ補足スタイル */
     .result-main { opacity: 0; transition: opacity 0.5s ease; }
     .result-main.visible { opacity: 1; }
 
-    /* スコア詳細 */
     .score-detail-row {
       display: flex;
       align-items: center;
@@ -31,41 +29,17 @@
       border: 1px solid var(--border-light);
     }
 
-    /* 印刷ボタン */
-    .print-btn-wrap {
-      text-align: right;
-      max-width: var(--max-w);
-      margin: 0 auto;
-      padding: 8px 20px 0;
-    }
-    .btn-print {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 6px 14px;
-      font-size: 0.78rem;
-      color: var(--text-sub);
-      cursor: pointer;
-      font-family: var(--font);
-      transition: background 0.15s;
-    }
-    .btn-print:hover { background: var(--bg); }
-
-    /* フォームセクション */
-    .form-section {
-      background: var(--bg);
-      border-top: 1px solid var(--border-light);
-    }
-
-    /* リスクなし時の強調 */
-    .all-green-msg {
-      background: var(--primary-light);
-      border: 1px solid #a7e3bf;
-      border-radius: var(--radius-lg);
-      padding: 20px 24px;
+    /* 改善余地メモ */
+    .improvement-note {
+      margin-top: 12px;
+      font-size: 0.85rem;
       color: var(--primary-dark);
-      font-size: 0.92rem;
-      line-height: 1.75;
+      background: var(--primary-light);
+      border-radius: var(--radius);
+      padding: 10px 16px;
+      max-width: 540px;
+      line-height: 1.65;
+      text-align: left;
     }
   </style>
 </head>
@@ -89,20 +63,13 @@
     </div>
   </header>
 
-  <!-- 印刷ボタン（ヘッダー直下） -->
-  <div class="print-btn-wrap no-print">
-    <button class="btn-print" id="btn-print" aria-label="この結果を印刷する">
-      🖨 印刷・保存
-    </button>
-  </div>
-
   <!-- メインコンテンツ -->
   <div class="result-main" id="result-main">
 
-    <!-- ① 成功確率 & 評価 -->
+    <!-- ① 簡易結果表示 -->
     <section class="result-hero" aria-labelledby="result-heading">
       <div class="result-hero-inner">
-        <p class="result-label">診断結果</p>
+        <p class="result-label">診断結果（簡易版）</p>
 
         <div class="rate-display">
           <div class="rate-num-wrap">
@@ -116,135 +83,15 @@
           <span class="score-detail-text" id="score-detail">スコア：― / 20点</span>
         </div>
 
-        <!-- ② 総合評価バッジ -->
         <div style="margin-top: 20px; margin-bottom: 8px;">
           <span class="rating-badge" id="rating-badge">総合評価：―</span>
         </div>
 
-        <!-- ③ 総評コメント -->
         <div class="result-comment fade-up fade-up-d1" id="result-comment" role="note">
           診断結果を読み込んでいます...
         </div>
 
-        <!-- ④ 改善余地メモ（評価別・JavaScriptで描画。断定的な数値上乗せはしない） -->
-        <p class="improvement-note hidden" id="improvement-note" role="note"></p>
-      </div>
-    </section>
-
-    <!-- ④ 主要リスク -->
-    <section class="risk-section" aria-labelledby="risk-heading">
-      <div class="risk-inner">
-        <div class="risk-section-head">
-          <h2 class="risk-section-title" id="risk-heading">
-            <span aria-hidden="true">⚠</span> 検出された主要リスク
-          </h2>
-          <p class="risk-section-sub">
-            C評価・B評価の回答をもとに、特に注意が必要な項目を抽出しています。
-          </p>
-        </div>
-
-        <!-- リスクリスト（JavaScriptで描画） -->
-        <div id="risk-list" role="list" aria-label="主要リスク一覧">
-          <p style="color:var(--text-sub);font-size:0.9rem;">分析中...</p>
-        </div>
-
-        <!-- ⑤ 参考離職コスト（JavaScriptで計算・表示） -->
-        <div class="cost-warning" role="note" aria-label="参考離職コスト">
-          <span class="cost-warning-icon" aria-hidden="true">💰</span>
-          <div class="cost-warning-body">
-
-            <!-- 参考コストレンジ表示 -->
-            <div class="cost-range-block">
-              <div class="cost-range-label">参考離職コスト</div>
-              <div class="cost-range-value" id="attrition-cost-display">算出中...</div>
-            </div>
-
-            <p class="cost-range-note">
-              この金額は、外国人材が早期離職した場合に一般的に発生しうる
-              採用費・教育費・再採用コストなどを参考レンジとして示したものです。<br>
-              ※実際の損失額は、職種・採用方法・教育投資・受入体制によって大きく変動します。
-              本診断では一般的な参考レンジを表示しています。
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CTA①（軽め）—— リスク・コスト確認後の軽い相談入口 -->
-    <div class="cta-light-section no-print">
-      <div class="cta-light-inner">
-        <p class="cta-light-text">
-          <a href="#lead-form-section" class="cta-light-link" id="cta-light"
-             onclick="trackEvent && trackEvent('cta_click', {cta_id:'cta_light', location:'between_sections'})">
-            <span id="cta-light-text-content">この結果を踏まえて、具体的な進め方を整理したい場合は、無料相談をご利用いただけます →</span>
-          </a>
-        </p>
-      </div>
-    </div>
-
-    <!-- GTN 経営コメント（評価別・JavaScriptで描画） -->
-    <section class="mgmt-comment-section" aria-labelledby="mgmt-comment-heading">
-      <div class="mgmt-comment-inner">
-        <p class="mgmt-comment-eyebrow">GTN コメント</p>
-        <h2 class="mgmt-comment-title" id="mgmt-comment-heading">経営視点で見ると</h2>
-        <div class="mgmt-comment-body" id="management-comment" role="note">
-          読み込み中...
-        </div>
-      </div>
-    </section>
-
-    <!-- 次に整理すべきポイント（評価別見出し・JavaScriptで描画） -->
-    <section class="next-steps-section" aria-labelledby="next-steps-heading">
-      <div class="next-steps-inner">
-        <p class="next-steps-eyebrow">NEXT ACTION</p>
-        <h2 class="next-steps-title" id="next-steps-heading">次に整理すべきポイント</h2>
-        <div class="next-steps-list" id="next-steps-list" role="list" aria-label="次に整理すべきポイント一覧"></div>
-      </div>
-    </section>
-
-    <!-- 無料相談で整理できること（CTA②の直前に価値を明示） -->
-    <section class="consult-value-section no-print" aria-labelledby="consult-value-heading">
-      <div class="consult-value-inner">
-        <p class="consult-value-eyebrow">FREE CONSULTATION</p>
-        <h2 class="consult-value-title" id="consult-value-heading">無料相談で整理できること</h2>
-        <div class="consult-value-list">
-          <div class="consult-value-item">貴社に合う外国人採用の進め方</div>
-          <div class="consult-value-item">在留資格・採用手法の考え方</div>
-          <div class="consult-value-item">定着しやすい受入体制の整理</div>
-          <div class="consult-value-item">外国人雇用で失敗しやすいポイントの確認</div>
-        </div>
-        <p class="consult-value-note">
-          一般論ではなく、貴社の業種・採用方針・受入状況に合わせて整理できます。
-        </p>
-      </div>
-    </section>
-
-    <!-- ⑥ 無料相談CTA（CTA②・本命） -->
-    <section class="result-cta" aria-labelledby="cta-main-title">
-      <div class="result-cta-inner">
-        <h2 class="result-cta-title" id="cta-main-title">
-          診断結果をもとに、無料で相談できます
-        </h2>
-        <p class="result-cta-desc" id="cta-main-desc">
-          採用設計・受入体制・定着設計の整理を、貴社の状況に合わせて一緒に進めます。
-        </p>
-
-        <!-- BNI流入時のみ表示する補助文言（source=bni） -->
-        <p class="bni-cta-note-wrap hidden" id="bni-cta-note-wrap" role="note">
-          <span id="bni-cta-note"></span>
-        </p>
-
-        <!-- id="cta-consult" でGA4クリック計測が可能 -->
-        <a href="#lead-form-section"
-           class="btn btn-cta btn-lg"
-           id="cta-consult"
-           onclick="trackEvent && trackEvent('cta_click', {cta_id:'result_cta', location:'result_cta_section'})">
-          無料相談を申し込む →
-        </a>
-
-        <p class="result-cta-note">無料・秘密厳守・勧誘はありません</p>
-
-        <div style="margin-top: 20px;">
+        <div style="margin-top: 14px;">
           <button class="result-retry-link js-retry" aria-label="診断をやり直す">
             もう一度診断する
           </button>
@@ -252,21 +99,184 @@
       </div>
     </section>
 
-    <!-- ⑦ リード取得フォーム -->
+    <!-- ② 4軸診断サマリー（v4.0：成功確率の直下） -->
+    <div class="axis-summary-section hidden" id="axis-summary-section" role="region" aria-label="4軸診断サマリー"></div>
+
+    <!-- ③ タイプ診断 -->
+    <div class="type-diagnosis-section hidden" id="type-diagnosis-section" role="region" aria-label="企業タイプ診断"></div>
+
+    <!-- ④ GTN基準との比較 -->
+    <div class="peer-comparison-section hidden" id="peer-comparison-section" role="region" aria-label="GTN基準との比較"></div>
+
+    <!-- ⑤ 危機認識ブロック -->
+    <div class="crisis-block-section hidden" id="crisis-block-section" role="region" aria-label="リスク危機レベル"></div>
+
+    <!-- ⑤-b デュアルCTA（危機認識直下：レポート受取 + 無料相談） -->
+    <div class="dual-cta-section" id="dual-cta-section">
+      <p class="dual-cta-caption">まずはレポートで整理したい方も、すぐ相談したい方も、どちらでも進めます。</p>
+      <div class="dual-cta-buttons">
+        <a href="#lead-form-section"
+           class="btn btn-cta btn-lg dual-cta-primary js-scroll-to-form"
+           onclick="trackEvent && trackEvent('cta_click', {cta_id:'dual_cta_report', location:'post_crisis'})">
+          完全版レポートを受け取る
+        </a>
+        <a href="#"
+           class="btn btn-outline btn-lg dual-cta-secondary js-consult-link"
+           onclick="trackEvent && trackEvent('cta_click', {cta_id:'dual_cta_consult', location:'post_crisis'})">
+          無料相談を予約する
+        </a>
+      </div>
+    </div>
+
+    <!-- ⑤ ロックされたプレビュー（詳細分析の存在を示す） -->
+    <div class="locked-preview-section js-scroll-to-form"
+         id="locked-preview-section-wrap"
+         role="button"
+         tabindex="0"
+         aria-label="クリックして完全版レポートを受け取る">
+      <div class="locked-preview-inner">
+        <div class="locked-preview-label">完全版レポートにしかない詳細分析</div>
+        <div class="locked-preview-grid" id="locked-preview-grid">
+          <div class="locked-preview-item">
+            <span class="locked-item-icon">⚠</span>
+            <span class="locked-item-text">主要リスク詳細（<span id="locked-risk-count">―</span>件・深刻度付き）</span>
+          </div>
+          <div class="locked-preview-item">
+            <span class="locked-item-icon">🔍</span>
+            <span class="locked-item-text">4軸ごとの詳細改善アドバイス</span>
+          </div>
+          <div class="locked-preview-item">
+            <span class="locked-item-icon">💰</span>
+            <span class="locked-item-text">参考離職コスト試算</span>
+          </div>
+          <div class="locked-preview-item">
+            <span class="locked-item-icon">📋</span>
+            <span class="locked-item-text">優先改善ポイント3つ（貴社向け）</span>
+          </div>
+          <div class="locked-preview-item">
+            <span class="locked-item-icon">💬</span>
+            <span class="locked-item-text">GTN 経営コメント</span>
+          </div>
+          <div class="locked-preview-item">
+            <span class="locked-item-icon">🗺</span>
+            <span class="locked-item-text">次の打ち手の優先順位</span>
+          </div>
+        </div>
+        <div class="locked-overlay">
+          <span class="locked-cta-pill">
+            <span class="locked-icon">🔒</span>
+            <span>クリックして完全版レポートを受け取る</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑤-c ロックプレビュー直下クイックCTA -->
+    <div class="locked-quick-cta">
+      <a href="#lead-form-section"
+         class="btn btn-cta btn-lg locked-quick-cta-btn js-scroll-to-form"
+         onclick="trackEvent && trackEvent('cta_click', {cta_id:'locked_quick_cta', location:'locked_preview_below'})">
+        会社情報を入力して完全版レポートを受け取る →
+      </a>
+    </div>
+
+    <!-- ③ 完全版レポート案内 -->
+    <section class="report-gate-section" aria-labelledby="report-gate-title">
+      <div class="report-gate-inner">
+        <p class="section-eyebrow">FULL REPORT</p>
+        <h2 class="report-gate-title" id="report-gate-title">完全版レポートを受け取る</h2>
+        <p class="report-gate-desc">
+          この診断だけでは見えない、主要リスクの全体像と優先改善テーマを整理します。<br>
+          完全版は、診断結果と入力内容をもとに<strong>企業ごとに個別生成</strong>される分析レポートです。
+        </p>
+        <ul class="report-gate-value-list">
+          <li>検出されたリスクの詳細と深刻度の整理</li>
+          <li>4軸ごとの具体的な改善アドバイス</li>
+          <li>貴社向けに改善ポイント・離職リスク・次の打ち手をまとめて提示</li>
+          <li>GTN経営コメントと優先改善テーマの提言</li>
+        </ul>
+
+        <ul class="report-teaser-list" role="list">
+          <li class="report-teaser-item">
+            <span class="report-teaser-icon">📊</span>
+            <div>
+              <div class="report-teaser-name">外国人雇用成功確率（詳細分析）</div>
+              <div class="report-teaser-desc">スコアの内訳と評価根拠を説明します</div>
+            </div>
+          </li>
+          <li class="report-teaser-item">
+            <span class="report-teaser-icon">⚠</span>
+            <div>
+              <div class="report-teaser-name">離職リスク分析</div>
+              <div class="report-teaser-desc">検出されたリスク全件・深刻度・影響を分析します</div>
+            </div>
+          </li>
+          <li class="report-teaser-item">
+            <span class="report-teaser-icon">🔍</span>
+            <div>
+              <div class="report-teaser-name">組織課題・受入体制の弱点</div>
+              <div class="report-teaser-desc">責任体制・評価制度・生活支援などを整理します</div>
+            </div>
+          </li>
+          <li class="report-teaser-item">
+            <span class="report-teaser-icon">📝</span>
+            <div>
+              <div class="report-teaser-name">改善ポイントと優先順位</div>
+              <div class="report-teaser-desc">まず整えるべき3つのアクションを提示します</div>
+            </div>
+          </li>
+          <li class="report-teaser-item">
+            <span class="report-teaser-icon">💰</span>
+            <div>
+              <div class="report-teaser-name">参考離職コスト試算</div>
+              <div class="report-teaser-desc">早期離職が発生した場合の参考コストレンジ</div>
+            </div>
+          </li>
+          <li class="report-teaser-item">
+            <span class="report-teaser-icon">💬</span>
+            <div>
+              <div class="report-teaser-name">GTN 専門家コメント</div>
+              <div class="report-teaser-desc">経営視点からの評価と次の打ち手を提案します</div>
+            </div>
+          </li>
+        </ul>
+
+        <a href="#lead-form-section" class="btn btn-cta btn-lg report-gate-cta"
+           onclick="trackEvent && trackEvent('cta_click', {cta_id:'report_gate', location:'report_gate_section'})">
+          自社の完全レポートを作成する（無料）→
+        </a>
+        <p class="report-gate-note">無料・秘密厳守・個人情報は相談案内のみに使用します</p>
+      </div>
+    </section>
+
+    <!-- ④ 会社情報フォーム（完全版レポートのゲート） -->
     <section class="form-section" id="lead-form-section" aria-labelledby="form-heading">
       <div class="form-inner">
         <div class="form-card">
           <div class="form-head">
             <h2 class="form-head-title" id="form-heading">
-              無料相談の申し込みフォーム
+              会社情報を入力して完全版レポートを受け取る
             </h2>
+
+            <!-- カスタム生成レポートの説明（v5.0 CVR改善） -->
+            <div class="custom-report-note" role="note">
+              <span class="custom-report-note-label">企業別カスタム生成レポート</span>
+              このレポートは、診断結果とご入力内容をもとに<strong>貴社向けに個別生成</strong>されます。<br>
+              完全版では、改善優先順位・リスク詳細・GTN経営コメント・次の打ち手まで整理してお届けします。
+            </div>
+
             <p class="form-head-sub">
-              以下のフォームにご記入いただくと、GTNの担当者よりご連絡いたします。
-              診断結果とあわせて、受入体制・リスク対策についてご相談いただけます。
+              会社情報を入力することで、診断結果が貴社の業種・規模・雇用状況に応じたレポートとして生成されます。<br>
+              入力後すぐにPDFをダウンロードしていただけます。
             </p>
+            <ul class="form-trust-list" role="list">
+              <li class="form-trust-item">📄 フォーム送信後すぐにPDFをダウンロードできます</li>
+              <li class="form-trust-item">🏢 入力内容はレポートの個別生成に使用されます</li>
+              <li class="form-trust-item">🔬 外国人材活用研究所のモデルをもとに作成</li>
+              <li class="form-trust-item">📵 一方的な営業電話はいたしません</li>
+            </ul>
           </div>
 
-          <!-- フォーム本体 -->
           <div id="form-body">
             <form id="lead-form" novalidate>
 
@@ -342,28 +352,76 @@
                 </div>
               </div>
 
+              <!-- 現在外国人を雇用していますか -->
               <div class="form-field">
-                <label class="form-label" for="f-foreign-status">
-                  現在の外国人雇用状況<span class="form-required">必須</span>
+                <label class="form-label">
+                  現在、外国人材を雇用していますか？<span class="form-required">必須</span>
                 </label>
-                <select class="form-select" id="f-foreign-status" name="foreignStatus" data-required>
-                  <option value="">選択してください</option>
-                  <option value="まだ雇用していない">まだ雇用していない</option>
-                  <option value="現在雇用している">現在雇用している</option>
-                  <option value="過去に雇用していた">過去に雇用していた</option>
-                  <option value="検討中">検討中</option>
-                </select>
-                <p class="form-error-msg" id="f-foreign-status-err" role="alert"></p>
+                <div class="foreign-employed-options" id="foreign-employed-options">
+                  <label class="foreign-employed-option">
+                    <input type="radio" name="foreignEmployed" value="YES" id="fe-yes">
+                    <span class="foreign-employed-label">はい（現在雇用中）</span>
+                  </label>
+                  <label class="foreign-employed-option">
+                    <input type="radio" name="foreignEmployed" value="NO" id="fe-no">
+                    <span class="foreign-employed-label">いいえ（雇用していない）</span>
+                  </label>
+                </div>
+                <p class="form-error-msg" id="f-foreign-employed-err" role="alert"></p>
+              </div>
+
+              <!-- 外国人材数（YES 選択時に表示） -->
+              <div class="form-field" id="foreign-count-field" style="display:none">
+                <label class="form-label" for="f-foreign-count">
+                  外国人材数（現在）<span class="form-optional">任意</span>
+                </label>
+                <input class="form-input" type="number" id="f-foreign-count" name="foreignCount"
+                       placeholder="例：3" min="0" max="9999" style="max-width:160px;">
+              </div>
+
+              <!-- 現在の課題チェックボックス -->
+              <div class="form-field">
+                <label class="form-label">
+                  現在の課題（複数選択可）<span class="form-optional">任意</span>
+                </label>
+                <div class="challenges-grid">
+                  <label class="challenge-option">
+                    <input type="checkbox" name="challenges" value="外国人採用を検討中">
+                    <span class="challenge-label">外国人採用を検討中</span>
+                  </label>
+                  <label class="challenge-option">
+                    <input type="checkbox" name="challenges" value="定着率に課題がある">
+                    <span class="challenge-label">定着率に課題がある</span>
+                  </label>
+                  <label class="challenge-option">
+                    <input type="checkbox" name="challenges" value="採用コストが高い">
+                    <span class="challenge-label">採用コストが高い</span>
+                  </label>
+                  <label class="challenge-option">
+                    <input type="checkbox" name="challenges" value="評価制度が整っていない">
+                    <span class="challenge-label">評価制度が整っていない</span>
+                  </label>
+                  <label class="challenge-option">
+                    <input type="checkbox" name="challenges" value="生活支援・現場対応に課題がある">
+                    <span class="challenge-label">生活支援・現場対応に課題がある</span>
+                  </label>
+                  <label class="challenge-option">
+                    <input type="checkbox" name="challenges" value="何から着手すべきかわからない">
+                    <span class="challenge-label">何から着手すべきかわからない</span>
+                  </label>
+                  <label class="challenge-option">
+                    <input type="checkbox" name="challenges" value="その他">
+                    <span class="challenge-label">その他</span>
+                  </label>
+                </div>
               </div>
 
               <div class="form-submit-wrap">
-                <!-- id="btn-form-submit" でGA4クリック計測が可能 -->
-                <button type="submit" class="btn btn-cta btn-lg btn-block" id="btn-form-submit"
-                        onclick="trackEvent && trackEvent('cta_click', {cta_id:'form_submit', location:'lead_form'})">
-                  無料相談を申し込む →
+                <button type="submit" class="btn btn-cta btn-lg btn-block" id="btn-form-submit">
+                  貴社向けの完全版レポートを生成する（無料）→
                 </button>
                 <p class="form-privacy-note">
-                  ご入力いただいた情報は、無料相談のご案内のみに使用します。
+                  入力内容は、完全版レポートの個別生成および無料相談のご案内のみに使用します。
                   第三者への提供はいたしません。
                   <a href="https://globaltalent-navi.com/privacy" target="_blank" rel="noopener noreferrer" style="color:var(--primary);">プライバシーポリシー</a>
                 </p>
@@ -372,13 +430,14 @@
             </form>
           </div><!-- /#form-body -->
 
-          <!-- サンクスメッセージ（送信後表示） -->
+          <!-- フォーム送信後のサンクスメッセージ（フォームカード内） -->
           <div class="thanks-msg" id="thanks-msg" role="status" aria-live="polite">
             <div class="thanks-icon" aria-hidden="true">✅</div>
-            <h3 class="thanks-title">お申し込みありがとうございます</h3>
+            <h3 class="thanks-title">レポートの準備ができました</h3>
             <p class="thanks-desc">
-              担当者より、ご登録いただいたメールアドレスにご連絡いたします。<br>
-              通常1〜2営業日以内にご連絡しますので、しばらくお待ちください。
+              入力内容をもとに貴社向けの完全版レポートが生成されました。<br>
+              下のボタンからPDFをダウンロードしてください。<br>
+              ご案内は後日メールにてお送りします。
             </p>
           </div>
 
@@ -386,31 +445,109 @@
       </div>
     </section>
 
-  </div><!-- /#result-main -->
+    <!-- ⑤ PDFダウンロードセクション（フォーム送信後に表示） -->
+    <section class="pdf-section hidden" id="pdf-section" aria-label="レポートダウンロード">
+      <div class="pdf-inner">
+        <div class="pdf-content">
+          <div class="pdf-icon-wrap" aria-hidden="true">📄</div>
+          <h2 class="pdf-title">完全版レポートの準備ができました</h2>
+          <p class="pdf-desc">
+            御社の診断データをもとに作成した「外国人材活用戦略診断レポート」をダウンロードしてください。<br>
+            レポートはPDF形式で保存・共有いただけます。
+          </p>
 
-  <!-- ご紹介にもご活用いただけます（BNIメンバーの転送・紹介用） -->
-  <section class="referral-section no-print" aria-labelledby="referral-heading">
-    <div class="referral-inner">
-      <p class="referral-eyebrow">REFERRAL</p>
-      <h3 id="referral-heading">ご紹介にもご活用いただけます</h3>
-      <p class="referral-desc">
-        外国人採用を検討している企業様向けの簡易診断です。<br>
-        採用の進め方、受入体制、定着リスクを整理できます。
-      </p>
+          <button id="btn-pdf-download" class="btn btn-primary btn-lg pdf-download-btn">
+            📥 PDFをダウンロードする
+          </button>
+          <p class="pdf-generating-msg hidden" id="pdf-generating-msg" aria-live="polite">
+            PDF生成中です。しばらくお待ちください...
+          </p>
 
-      <!-- コピー用テキスト + コピーボタン -->
-      <div class="referral-copy-wrap">
-        <div class="referral-copy-text" id="referral-copy-text"></div>
-        <button class="btn-copy" id="btn-copy" aria-label="紹介テキストをコピーする">
-          📋 コピーする
-        </button>
+          <div class="pdf-email-note">
+            <span>📧</span>
+            <span>ご登録のメールアドレスにもレポートを送付します（GTN担当者より連絡が届きます）</span>
+          </div>
+        </div>
+
+        <!-- PDFダウンロード直下：無料相談CTA（v5.3） -->
+        <div class="pdf-consult-cta">
+          <h3 class="pdf-consult-title">
+            診断結果をもとに、貴社に合った進め方を無料で整理できます
+          </h3>
+          <p class="pdf-consult-desc">
+            完全レポートで課題は見えますが、何から整えるべきかは企業ごとに異なります。<br>
+            無料相談では、優先順位と次の一手を具体的に整理します。
+          </p>
+          <a href="#"
+             class="btn btn-cta btn-lg pdf-consult-btn js-consult-link"
+             onclick="trackEvent && trackEvent('cta_click', {cta_id:'pdf_consult_cta', location:'pdf_section'})">
+            ▶ 無料相談を予約する
+          </a>
+          <p class="pdf-consult-note">無料 60分 ／ オンライン対応 ／ 無理な営業はありません</p>
+        </div>
       </div>
-      <p class="referral-copy-msg" id="referral-copy-msg" aria-live="polite"></p>
-    </div>
-  </section>
+    </section>
+
+    <!-- ⑥ GTN 信頼ブロック（常時表示） -->
+    <section class="trust-section" id="trust-section" aria-labelledby="trust-heading">
+      <div class="trust-inner">
+        <p class="section-eyebrow">ABOUT GTN</p>
+        <h2 class="trust-title" id="trust-heading">外国人材活用研究所とは</h2>
+        <p class="trust-desc">
+          Global Talent Navi（GTN）が運営する、外国人材活用の診断・分析プロジェクトです。<br>
+          外国人雇用を「採用」ではなく「戦力化する経営設計」と捉え、<br>
+          受入体制・定着・現場運用の観点から企業課題を整理します。
+        </p>
+        <div class="perspective-cards" role="list">
+          <div class="perspective-card" role="listitem">
+            <div class="perspective-card-icon" aria-hidden="true">🎯</div>
+            <div class="perspective-card-title">戦力化視点</div>
+            <div class="perspective-card-desc">採用だけでなく、定着・活躍まで見据えて整理します</div>
+          </div>
+          <div class="perspective-card" role="listitem">
+            <div class="perspective-card-icon" aria-hidden="true">🔍</div>
+            <div class="perspective-card-title">受入設計視点</div>
+            <div class="perspective-card-desc">現場・生活支援・制度運用まで含めて診断します</div>
+          </div>
+          <div class="perspective-card" role="listitem">
+            <div class="perspective-card-icon" aria-hidden="true">🤝</div>
+            <div class="perspective-card-title">継続支援視点</div>
+            <div class="perspective-card-desc">診断後の研修・相談・改善支援にも接続可能です</div>
+          </div>
+        </div>
+        <p class="trust-note">本診断は GTN 外国人材活用研究所の分析モデルをもとに作成されています</p>
+      </div>
+    </section>
+
+    <!-- ⑦ 無料相談導線（フォーム送信後に表示） -->
+    <section class="consult-final-section hidden" id="consult-final-section" aria-labelledby="consult-final-title">
+      <div class="consult-final-inner">
+        <div class="consult-final-badge">無料 60分</div>
+        <h2 class="consult-final-title" id="consult-final-title">
+          この診断結果をもとに、貴社に最適な<br>外国人材活用の設計を個別に整理できます
+        </h2>
+
+        <ul class="consult-items" role="list">
+          <li class="consult-item">診断で検出されたリスクへの具体的な改善策をご提案します</li>
+          <li class="consult-item">採用・定着・受入体制の優先整備ポイントを明確にします</li>
+          <li class="consult-item">御社の業種・規模に合った外国人材活用の設計を一緒に整理します</li>
+        </ul>
+
+        <a href="#" class="btn btn-cta btn-lg consult-final-btn js-consult-link"
+           onclick="trackEvent && trackEvent('cta_click', {cta_id:'consult_final', location:'consult_final_section'})">
+          ▶ 無料相談を予約する
+        </a>
+        <p class="consult-final-note">無料 60分 ／ 秘密厳守 ／ 勧誘はありません</p>
+      </div>
+    </section>
+
+  </div><!-- /#result-main -->
 
   <!-- フッター -->
   <footer class="site-footer">
+    <div class="institute-branding">
+      本診断は <strong>Global Talent Navi 外国人材活用研究所</strong> の分析モデルをもとに作成されています
+    </div>
     <div class="footer-links">
       <a href="https://globaltalent-navi.com/privacy" target="_blank" rel="noopener noreferrer">プライバシーポリシー</a>
       <a href="terms.html">利用規約</a>
@@ -420,6 +557,11 @@
     <p>© 2025 Global Talent Navi (GTN). All rights reserved.</p>
   </footer>
 
+  <!-- PDF生成ライブラリ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="js/app.js"></script>
   <script>
     // 結果ページ表示（ローディング終了後）
@@ -428,62 +570,24 @@
       resultMain.classList.add('visible');
     });
 
-    // 相談ボタンのhref設定（app.jsの CONSULT_URL を参照）
-    // ※ app.js の CONSULT_URL 定数はここで参照できないため、result.html内のリンクを直接設定
-    // ↓ここのURLを変更してください（app.js の CONSULT_URL と合わせて設定）
-    // document.querySelectorAll('.js-consult-link').forEach(a => a.href = 'YOUR_CONSULT_URL');
+    // もう一度診断する
+    document.querySelectorAll('.js-retry').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (typeof clearAnswers !== 'undefined') clearAnswers();
+        window.location.href = 'check.html';
+      });
+    });
 
-    // ── 紹介テキスト表示＋コピーボタン ──────────────────────
-    // REFERRAL_COPY_TEXT は app.js で定義
-    (function initReferralCopy() {
-      const textEl = document.getElementById('referral-copy-text');
-      const copyBtn = document.getElementById('btn-copy');
-      const msgEl   = document.getElementById('referral-copy-msg');
-
-      if (textEl && typeof REFERRAL_COPY_TEXT !== 'undefined') {
-        textEl.textContent = REFERRAL_COPY_TEXT;
-      }
-
-      if (copyBtn) {
-        copyBtn.addEventListener('click', () => {
-          const text = (typeof REFERRAL_COPY_TEXT !== 'undefined') ? REFERRAL_COPY_TEXT : '';
-          if (!text) return;
-
-          // Clipboard API 対応ブラウザ
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).then(() => {
-              copyBtn.textContent = '✅ コピーしました';
-              copyBtn.classList.add('copied');
-              if (msgEl) msgEl.textContent = 'コピーしました。そのままご転送いただけます。';
-              setTimeout(() => {
-                copyBtn.textContent = '📋 コピーする';
-                copyBtn.classList.remove('copied');
-                if (msgEl) msgEl.textContent = '';
-              }, 2500);
-            }).catch(() => fallbackCopy(text));
-          } else {
-            fallbackCopy(text);
-          }
-        });
-      }
-
-      function fallbackCopy(text) {
-        // 古いブラウザ向けフォールバック
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
-        try {
-          document.execCommand('copy');
-          if (msgEl) msgEl.textContent = 'コピーしました。';
-        } catch {
-          if (msgEl) msgEl.textContent = '手動でテキストを選択してコピーしてください。';
+    // YES/NO ラジオ → 外国人材数フィールドの表示制御
+    document.querySelectorAll('[name="foreignEmployed"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        const countField = document.getElementById('foreign-count-field');
+        if (countField) {
+          countField.style.display = radio.value === 'YES' ? 'block' : 'none';
         }
-        document.body.removeChild(ta);
-      }
-    })();
+      });
+    });
   </script>
 </body>
 </html>

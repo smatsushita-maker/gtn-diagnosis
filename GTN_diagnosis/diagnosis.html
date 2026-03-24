@@ -139,13 +139,13 @@
            onclick="trackEvent && trackEvent('cta_click', {cta_id:'hero', location:'hero'})">
           無料で診断する →
         </a>
-        <span class="hero-cta-note">会員登録・個人情報の入力は不要</span>
+        <span class="hero-cta-note">診断後に完全版レポート（PDF）を無料でお受け取りいただけます</span>
       </div>
 
       <div class="hero-meta">
-        <span class="hero-meta-item">⏱ 約3分</span>
+        <span class="hero-meta-item">⏱ 約60秒</span>
         <span class="hero-meta-item">📋 10問</span>
-        <span class="hero-meta-item">🔒 無料・登録不要</span>
+        <span class="hero-meta-item">📄 完全版レポート付き</span>
         <span class="hero-meta-item">📱 スマホ対応</span>
       </div>
     </div>
@@ -254,21 +254,26 @@
         <h2 class="section-title" id="how-title">診断はかんたん3ステップ</h2>
       </div>
 
-      <div class="steps-row reveal">
+      <div class="steps-row reveal" style="grid-template-columns: repeat(4, 1fr);">
         <div class="step-item">
           <div class="step-num">1</div>
           <h3>診断スタート</h3>
-          <p>下のボタンをクリック。会員登録は不要です。</p>
+          <p>ボタンをクリック。登録不要ですぐ始められます。</p>
         </div>
         <div class="step-item">
           <div class="step-num">2</div>
           <h3>10問に回答</h3>
-          <p>各質問に3択で直感的に回答。約3分で完了します。</p>
+          <p>3択で直感的に回答。約60秒で完了します。</p>
         </div>
         <div class="step-item">
           <div class="step-num">3</div>
-          <h3>結果を確認</h3>
-          <p>成功確率・リスク・無料相談の案内が表示されます。</p>
+          <h3>簡易結果を確認</h3>
+          <p>成功確率・評価ランクを即時表示します。</p>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <h3>完全レポート取得</h3>
+          <p>会社情報を入力して詳細分析PDFを受け取れます。</p>
         </div>
       </div>
     </div>
@@ -342,8 +347,8 @@
 
   <!-- CTAバナー（再掲） -->
   <section class="lp-cta" aria-labelledby="lp-cta-title">
-    <h2 id="lp-cta-title">3分で診断を始める</h2>
-    <p>外国人雇用は「採用」ではなく「設計」です。<br>まず現状を把握することから始めましょう。</p>
+    <h2 id="lp-cta-title">60秒で診断・完全レポート無料取得</h2>
+    <p>外国人雇用は「採用」ではなく「設計」です。<br>まず現状を把握して、完全版レポートで課題を整理しましょう。</p>
     <!-- id="cta-bottom" でGA4クリック計測が可能 -->
     <a href="check.html" class="btn btn-cta btn-lg" id="cta-bottom"
        onclick="trackEvent && trackEvent('cta_click', {cta_id:'bottom', location:'lp_bottom'})">
@@ -351,13 +356,16 @@
     </a>
     <div class="lp-cta-note">
       <span>✓ 無料</span>
-      <span>✓ 登録不要</span>
-      <span>✓ 約3分</span>
+      <span>✓ 約60秒</span>
+      <span>✓ 完全版レポート付き</span>
     </div>
   </section>
 
   <!-- フッター -->
   <footer class="site-footer">
+    <div class="institute-branding">
+      本診断は <strong>Global Talent Navi 外国人材活用研究所</strong> の分析モデルをもとに作成されています
+    </div>
     <div class="footer-links">
       <a href="https://globaltalent-navi.com/privacy" target="_blank" rel="noopener noreferrer">プライバシーポリシー</a>
       <a href="terms.html">利用規約</a>
