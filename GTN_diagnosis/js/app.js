@@ -568,8 +568,12 @@ const ResultPage = {
     this.companyTypeKey = getCompanyType(this.rate, this.axisScores); // v4.0
 
     // ローディング後に描画
+    // result-main を visible にしてから overlay を hide する順番で
+    // 「overlay フェード中に result-main が opacity:0 のまま」になるのを防ぐ
     setTimeout(() => {
       this.render();
+      const resultMain = document.getElementById('result-main');
+      if (resultMain) resultMain.classList.add('visible');
       document.getElementById('loading-overlay').classList.add('hide');
     }, 2000);
 

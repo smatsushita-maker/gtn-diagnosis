@@ -564,11 +564,16 @@
           crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="js/app.js"></script>
   <script>
-    // 結果ページ表示（ローディング終了後）
+    // 結果ページ表示
+    // visible 付与は app.js の setTimeout 内（render 完了後）で行う。
+    // ここでは transitionend に依存せず、フォールバックとして
+    // 一定時間後に必ず visible を保証する（ブラウザ差異・バックグラウンドタブ対策）
     const resultMain = document.getElementById('result-main');
-    document.getElementById('loading-overlay').addEventListener('transitionend', () => {
-      resultMain.classList.add('visible');
-    });
+    setTimeout(() => {
+      if (resultMain && !resultMain.classList.contains('visible')) {
+        resultMain.classList.add('visible');
+      }
+    }, 3000); // render+hide の 2000ms + overlay transition 0.5s の余裕を持たせた上限
 
     // もう一度診断する
     document.querySelectorAll('.js-retry').forEach(el => {
